@@ -1,5 +1,5 @@
 ;/****************************************************************************
-;  AESKey_x86.asm
+;  AESKey_x64.asm
 ;  For more information see https://github.com/RePag/AES-CBC-256bit
 ;****************************************************************************/
 ;
@@ -27,14 +27,10 @@
 ;  SOFTWARE.
 ;******************************************************************************/
 
-.686P
-.XMM
 INCLUDE listing.inc
-.MODEL FLAT
-INCLUDELIB LIBCMTD
 INCLUDELIB OLDNAMES
 
-CS_AES_Key SEGMENT PARA PRIVATE FLAT EXECUTE
+CS_AES_Key SEGMENT EXECUTE
 ;----------------------------------------------------------------------------
 AES_256_ASSIST_1 PROC PRIVATE
 		pshufd xmm0, xmm2, 255
@@ -48,7 +44,7 @@ AES_256_ASSIST_1 PROC PRIVATE
 		pxor xmm1, xmm4
 		pxor xmm1, xmm2
 
-		ret
+		ret 0
 AES_256_ASSIST_1 ENDP
 ;----------------------------------------------------------------------------
 AES_256_ASSIST_2 PROC PRIVATE
@@ -65,139 +61,139 @@ AES_256_ASSIST_2 PROC PRIVATE
 		pxor xmm3, xmm4
 		pxor xmm3, xmm2
 
-		ret
+		ret 0
 AES_256_ASSIST_2 ENDP
 ;----------------------------------------------------------------------------
-?AES_SetEncryptKey@@YQXPAEQAE@Z PROC PUBLIC
- 		test ecx, ecx
+?AES_SetEncryptKey@@YQXPEAEQEAE@Z PROC PUBLIC
+ 		test rcx, rcx
 		jz Ende
-		test edx, edx
+		test rdx, rdx
 		jz Ende
 
-		movups xmm1, xmmword ptr [ecx]
-		movaps xmmword ptr [edx], xmm1
-		movups xmm3, xmmword ptr [ecx + 10h]
+		movups xmm1, xmmword ptr [rcx]
+		movaps xmmword ptr [rdx], xmm1
+		movups xmm3, xmmword ptr [rcx + 10h]
 
-		movaps xmmword ptr [edx + 10h], xmm3
+		movaps xmmword ptr [rdx + 10h], xmm3
 		aeskeygenassist xmm2, xmm3, 1
 		call AES_256_ASSIST_1
 
-		movaps xmmword ptr [edx + 20h], xmm1
+		movaps xmmword ptr [rdx + 20h], xmm1
 		call AES_256_ASSIST_2
 
-		movaps xmmword ptr [edx + 30h], xmm3
+		movaps xmmword ptr [rdx + 30h], xmm3
 		aeskeygenassist xmm2, xmm3, 2
 		call AES_256_ASSIST_1
 
-		movaps xmmword ptr [edx + 40h], xmm1
+		movaps xmmword ptr [rdx + 40h], xmm1
 		call AES_256_ASSIST_2
 
-		movaps xmmword ptr [edx + 50h], xmm3	
+		movaps xmmword ptr [rdx + 50h], xmm3	
 		aeskeygenassist xmm2, xmm3, 4
 		call AES_256_ASSIST_1
 
-		movaps xmmword ptr [edx + 60h], xmm1
+		movaps xmmword ptr [rdx + 60h], xmm1
 		call AES_256_ASSIST_2
 
-		movaps xmmword ptr [edx + 70h], xmm3
+		movaps xmmword ptr [rdx + 70h], xmm3
 		aeskeygenassist xmm2, xmm3, 8
 		call AES_256_ASSIST_1
 
-		movaps xmmword ptr [edx + 80h], xmm1
+		movaps xmmword ptr [rdx + 80h], xmm1
 		call AES_256_ASSIST_2
 
-		movaps xmmword ptr [edx + 90h], xmm3
+		movaps xmmword ptr [rdx + 90h], xmm3
 		aeskeygenassist xmm2, xmm3, 16
 		call AES_256_ASSIST_1
 
-		movaps xmmword ptr [edx + 0a0h], xmm1
+		movaps xmmword ptr [rdx + 0a0h], xmm1
 		call AES_256_ASSIST_2
 
-		movaps xmmword ptr [edx + 0b0h], xmm3
+		movaps xmmword ptr [rdx + 0b0h], xmm3
 		aeskeygenassist xmm2, xmm3, 32
 		call AES_256_ASSIST_1
 
-		movaps xmmword ptr [edx + 0c0h], xmm1
+		movaps xmmword ptr [rdx + 0c0h], xmm1
 		call AES_256_ASSIST_2
 
-		movaps xmmword ptr [edx + 0d0h], xmm3
+		movaps xmmword ptr [rdx + 0d0h], xmm3
 		aeskeygenassist xmm2, xmm3, 64
 		call AES_256_ASSIST_1
 
-		movaps xmmword ptr [edx + 0e0h], xmm1
+		movaps xmmword ptr [rdx + 0e0h], xmm1
 
 	Ende:
-		ret	0
-?AES_SetEncryptKey@@YQXPAEQAE@Z ENDP
+		ret
+?AES_SetEncryptKey@@YQXPEAEQEAE@Z ENDP
 ;----------------------------------------------------------------------------
 _Text SEGMENT
-a_auc240TempKey = 12
-?AES_SetDecryptKey@@YQXPAEQAE1@Z PROC PUBLIC
-		push esi
-		push edi
+aqp_auc240TempKey = 40
+?AES_SetDecryptKey@@YQXPEAEQEAE1@Z PROC PUBLIC
+		push rsi
+		push rdi
 
- 		test ecx, ecx
+ 		test rcx, rcx
 		jz Ende
-		mov esi, edx
-		test esi, esi
+		mov rsi, rdx
+		test rsi, rsi
 		jz Ende
-		mov edi, dword ptr [esp + a_auc240TempKey]
-		test edi, edi
+		mov rdi, qword ptr aqp_auc240TempKey[rsp]
+		test rdi, rdi
 		jz Ende
 
-		mov edx, edi
-		call ?AES_SetEncryptKey@@YQXPAEQAE@Z
+		mov rdx, rdi
+		call ?AES_SetEncryptKey@@YQXPEAEQEAE@Z
 
-		movaps xmm0, xmmword ptr [edi]
-		movaps xmmword ptr [esi + 0e0h], xmm0
+		movaps xmm0, xmmword ptr [rdi]
+		movaps xmmword ptr [rsi + 0e0h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 10h]
-		movaps xmmword ptr [esi + 0d0h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 10h]
+		movaps xmmword ptr [rsi + 0d0h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 20h]
-		movaps xmmword ptr [esi + 0c0h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 20h]
+		movaps xmmword ptr [rsi + 0c0h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 30h]
-		movaps xmmword ptr [esi + 0b0h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 30h]
+		movaps xmmword ptr [rsi + 0b0h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 40h]
-		movaps xmmword ptr [esi + 0a0h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 40h]
+		movaps xmmword ptr [rsi + 0a0h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 50h]
-		movaps xmmword ptr [esi + 90h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 50h]
+		movaps xmmword ptr [rsi + 90h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 60h]
-		movaps xmmword ptr [esi + 80h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 60h]
+		movaps xmmword ptr [rsi + 80h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 70h]
-		movaps xmmword ptr [esi + 70h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 70h]
+		movaps xmmword ptr [rsi + 70h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 80h]
-		movaps xmmword ptr [esi + 60h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 80h]
+		movaps xmmword ptr [rsi + 60h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 90h]
-		movaps xmmword ptr [esi + 50h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 90h]
+		movaps xmmword ptr [rsi + 50h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 0a0h]
-		movaps xmmword ptr [esi + 40h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 0a0h]
+		movaps xmmword ptr [rsi + 40h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 0b0h]
-		movaps xmmword ptr [esi + 30h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 0b0h]
+		movaps xmmword ptr [rsi + 30h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 0c0h]
-		movaps xmmword ptr [esi + 20h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 0c0h]
+		movaps xmmword ptr [rsi + 20h], xmm0
 
-		aesimc xmm0, xmmword ptr [edi + 0d0h]
-		movaps xmmword ptr [esi + 10h], xmm0
+		aesimc xmm0, xmmword ptr [rdi + 0d0h]
+		movaps xmmword ptr [rsi + 10h], xmm0
 
-		movaps xmm0, xmmword ptr [edi + 0e0h]
-		movaps xmmword ptr [esi], xmm0
+		movaps xmm0, xmmword ptr [rdi + 0e0h]
+		movaps xmmword ptr [rsi], xmm0
 
 	Ende:
-		pop	edi
-		pop	esi
-		ret	4
-?AES_SetDecryptKey@@YQXPAEQAE1@Z ENDP
+		pop	rdi
+		pop	rsi
+		ret
+?AES_SetDecryptKey@@YQXPEAEQEAE1@Z ENDP
 _Text ENDS
 ;----------------------------------------------------------------------------
 CS_AES_Key ENDS

@@ -15,16 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="AESCrypt_x86.asm">
+    <CustomBuild Include="AESCrypt_x86.asm">
       <Filter>Quelldateien</Filter>
-    </None>
-    <None Include="AESKey_x86.asm">
+    </CustomBuild>
+    <CustomBuild Include="AESKey_x86.asm">
       <Filter>Quelldateien</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AESCrypt_x86.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
+    </CustomBuild>
+    <CustomBuild Include="AESKey_x64.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="AESCrypt_x64.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

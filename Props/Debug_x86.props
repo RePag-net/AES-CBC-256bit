@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir>..\..\Debug\x86\</OutDir>
+    <GenerateManifest>false</GenerateManifest>
+    <IntDir>Debug\x86\</IntDir>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetExt />
+    <ExcludePath>$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);$(ExcludePath)</ExcludePath>
+    <ExecutablePath>C:\Program Files\NASM 2.14.02;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level2</WarningLevel>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <AssemblerListingLocation>$(IntDir)%(Filename)_Dx86.asm</AssemblerListingLocation>
+      <AdditionalOptions>/volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeaderFile>H$(ProjectName).h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>
+      </MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..\..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WINDLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <SDLCheck>true</SDLCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ProgramDataBaseFileName>$(IntDir)$(TargetName)_Dx86.pdb</ProgramDataBaseFileName>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <Optimization>Custom</Optimization>
+      <EnableModules>false</EnableModules>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <CreateHotpatchableImage>
+      </CreateHotpatchableImage>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <PreventDllBinding>false</PreventDllBinding>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <MapFileName>$(IntDir)$(TargetName).map</MapFileName>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+    <ResourceCompile>
+      <Culture>0x0407</Culture>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>signtool sign /i "RePag Root" $(OutDir)$(TargetName)$(TargetExt)</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>/t http://timestamp.verisign.com/scripts/timstamp.dll</Message>
+    </PostBuildEvent>
+    <Lib />
+    <Lib />
+    <Lib>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Lib>
+    <Lib>
+      <SubSystem>Windows</SubSystem>
+    </Lib>
+    <Lib>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+    </Lib>
+    <ProjectReference />
+    <CustomBuild>
+      <Command>
+      </Command>
+      <Outputs>
+      </Outputs>
+    </CustomBuild>
+    <BuildLog>
+      <Path>$(IntDir)$(MSBuildProjectName)_Dx86.log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
