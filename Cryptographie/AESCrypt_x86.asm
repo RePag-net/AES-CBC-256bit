@@ -31,167 +31,185 @@
 .XMM
 include listing.inc
 .MODEL FLAT
+INCLUDE ..\..\Include\CompSys.inc
+INCLUDE ..\..\Include\ADT.inc
 INCLUDELIB LIBCMTD
 INCLUDELIB OLDNAMES
 
 CS_AES_Crypt SEGMENT PRIVATE EXECUTE
 ;----------------------------------------------------------------------------
 _Text SEGMENT
-a_ulBytes = 16		
-a_auc16IVec = 20												
-a_auc256Key = 24
-?AES_CBC_Encrypt@@YQXPBXPAXKQAE2@Z PROC PUBLIC
-		push ebx
+s_Bytes = 8
+
+sdi_Bytes = 4
+sdp_Speicher = 0
+
+adauc_256Key = 24 + s_Bytes
+adauc_16IVec = 20 + s_Bytes
+add_Bytes = 16 + s_Bytes
+?AES_CBC_Encrypt@@YQPADPBX0AAKQAE2@Z PROC PUBLIC
 		push esi
 		push edi
+    push ebx
+    sub esp, s_Bytes
 
-		mov ebx, dword ptr [esp + a_auc256Key]
-		test ebx, ebx
-		je Ende
-		mov	esi, ecx
+    mov dword ptr sdp_Speicher[esp], ecx
+
+		mov	esi, edx
 		test esi, esi
 		je Ende
-		mov	edi, edx
-		test edi, edi
-		je Ende
-		mov	ecx, dword ptr [esp + a_auc16IVec]
-		test ecx, ecx
-		je Ende
-		movups xmm0, xmmword ptr [ecx]
-		mov	eax, dword ptr [esp + a_ulBytes]
-		test eax, eax
-		je Ende
-		cmp eax, 10h
-		jb Bytes_Crypt_Short
-		sub eax, 10h
-		add eax, esi
 
-	Bytes_Crypt_Long:
+    mov ebx, dword ptr add_Bytes[esp]
+		test ebx, ebx
+		je Ende
+    mov eax, dword ptr [ebx]
+    mov dword ptr sdi_Bytes[esp], eax
+
+    xor edx, edx
+    mov ecx, 10h
+    div ecx
+    test edx, edx
+    je NoRound
+    add eax, 1
+
+  NoRound:
+    add eax, 1
+    mov edx, 10h
+    imul edx, eax
+    mov dword ptr [ebx], edx
+    mov ecx, dword ptr sdp_Speicher[esp]
+    call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
+    mov edi, eax
+
+    mov edx, dword ptr add_Bytes[esp]
+    mov edx, dword ptr [edx]
+    sub edx, 10h
+    mov ecx, dword ptr sdi_Bytes[esp]
+    mov dword ptr [edi + edx], ecx
+		add edx, esi
+
+		mov	ecx, dword ptr adauc_16IVec[esp]
+		test ecx, ecx
+		je Ende_Frei
+		movups xmm0, xmmword ptr [ecx]
+
+		mov ecx, dword ptr adauc_256Key[esp]
+		test ecx, ecx
+		je Ende_Frei
+
+	Bytes_Crypt:
 		movups xmm1, xmmword ptr [esi]
 		pxor xmm0, xmm1
-		pxor xmm0, xmmword ptr [ebx]
+		pxor xmm0, xmmword ptr [ecx]
 
-		aesenc xmm0, xmmword ptr [ebx + 10h]
-		aesenc xmm0, xmmword ptr [ebx + 20h]
-		aesenc xmm0, xmmword ptr [ebx + 30h]
-		aesenc xmm0, xmmword ptr [ebx + 40h]
-		aesenc xmm0, xmmword ptr [ebx + 50h]
-		aesenc xmm0, xmmword ptr [ebx + 60h]
-		aesenc xmm0, xmmword ptr [ebx + 70h]
-		aesenc xmm0, xmmword ptr [ebx + 80h]
-		aesenc xmm0, xmmword ptr [ebx + 90h]
-		aesenc xmm0, xmmword ptr [ebx + 0a0h]
-		aesenc xmm0, xmmword ptr [ebx + 0b0h]
-		aesenc xmm0, xmmword ptr [ebx + 0c0h]
-		aesenc xmm0, xmmword ptr [ebx + 0d0h]
-		aesenclast xmm0, xmmword ptr [ebx + 0e0h]
+		aesenc xmm0, xmmword ptr [ecx + 10h]
+		aesenc xmm0, xmmword ptr [ecx + 20h]
+		aesenc xmm0, xmmword ptr [ecx + 30h]
+		aesenc xmm0, xmmword ptr [ecx + 40h]
+		aesenc xmm0, xmmword ptr [ecx + 50h]
+		aesenc xmm0, xmmword ptr [ecx + 60h]
+		aesenc xmm0, xmmword ptr [ecx + 70h]
+		aesenc xmm0, xmmword ptr [ecx + 80h]
+		aesenc xmm0, xmmword ptr [ecx + 90h]
+		aesenc xmm0, xmmword ptr [ecx + 0a0h]
+		aesenc xmm0, xmmword ptr [ecx + 0b0h]
+		aesenc xmm0, xmmword ptr [ecx + 0c0h]
+		aesenc xmm0, xmmword ptr [ecx + 0d0h]
+		aesenclast xmm0, xmmword ptr [ecx + 0e0h]
 
 		movups xmmword ptr [edi], xmm0
 
 		add esi, 10h
 		add edi, 10h
-		cmp	esi, eax
-		jbe Bytes_Crypt_Long
+		cmp	esi, edx
+		jb Bytes_Crypt
+    jmp short Ende
 
-		add eax, 10h
-		sub eax, esi
-		test eax, eax
-		jz Ende
-
-	Bytes_Crypt_Short:
-		xor ecx, ecx
-		xor edx, edx
-	LastByte_PlanText:
-		mov dl, byte ptr [esi + ecx]
-		mov byte ptr [ebx + 0f0h + ecx], dl
-		add ecx, 01h
-		cmp ecx, eax
-		jb short LastByte_PlanText
-
-		movaps xmm1, xmmword ptr [ebx + 0f0h]
-		pxor xmm0, xmm1
-		pxor xmm0, xmmword ptr [ebx]
-
-		aesenc xmm0, xmmword ptr [ebx + 10h]
-		aesenc xmm0, xmmword ptr [ebx + 20h]
-		aesenc xmm0, xmmword ptr [ebx + 30h]
-		aesenc xmm0, xmmword ptr [ebx + 40h]
-		aesenc xmm0, xmmword ptr [ebx + 50h]
-		aesenc xmm0, xmmword ptr [ebx + 60h]
-		aesenc xmm0, xmmword ptr [ebx + 70h]
-		aesenc xmm0, xmmword ptr [ebx + 80h]
-		aesenc xmm0, xmmword ptr [ebx + 90h]
-		aesenc xmm0, xmmword ptr [ebx + 0a0h]
-		aesenc xmm0, xmmword ptr [ebx + 0b0h]
-		aesenc xmm0, xmmword ptr [ebx + 0c0h]
-		aesenc xmm0, xmmword ptr [ebx + 0d0h]
-		aesenclast xmm0, xmmword ptr [ebx + 0e0h]
-
-		xor ecx, ecx
-	LastByte_ChipperText:
-		mov dl, byte ptr [ebx + 0f0h + ecx]
-		mov byte ptr [edi + ecx], dl
-		add ecx, 1
-		cmp ecx, eax
-		jb short LastByte_ChipperText
+  Ende_Frei:
+    mov edx, edi
+    mov ecx, dword ptr sdp_Speicher[esp]
+    call ?VMFrei@System@RePag@@YQXPBXPAX@Z ; VMFrei(vmSpeicher, vbAdresse)
+    xor eax, eax
 
 	Ende:
+    add esp, s_Bytes
+    pop ebx
 		pop	edi
 		pop	esi
-		pop	ebx
 		ret	12
-?AES_CBC_Encrypt@@YQXPBXPAXKQAE2@Z ENDP
+?AES_CBC_Encrypt@@YQPADPBX0AAKQAE2@Z ENDP
 _Text ENDS
-;----------------------------------------------------------------------------
+;-----------------------------------------------------------------------------
 _Text SEGMENT
-a_ulBytes = 16
-a_auc16IVec = 20												
-a_auc256Key = 24
-?AES_CBC_Decrypt@@YQXPBXPAXKQAE2@Z PROC PUBLIC
+s_Bytes = 4
+
+sdp_Speicher = 0
+
+adauc256Key = 24 + s_Bytes
+adauc_16IVec = 20 + s_Bytes
+add_Bytes = 16 + s_Bytes
+?AES_CBC_Decrypt@@YQPADPBX0AAKQAE2@Z PROC PUBLIC
 		push ebx
 		push esi
 		push edi
+    sub esp, s_Bytes
 
-		mov ebx, dword ptr [esp + a_auc256Key]
-		test ebx, ebx
-		jz Ende
-		mov esi, ecx
+    mov dword ptr sdp_Speicher[esp], ecx
+
+		mov esi, edx
 		test esi, esi
-		jz Ende
-		mov edi, edx
-		test edi, edi
-		jz Ende
-		mov	ecx, dword ptr [esp + a_auc16IVec]
-		test ecx, ecx
-		jz Ende
-		movups xmm2, xmmword ptr [ecx]
-		mov	eax, dword ptr [esp + a_ulBytes]
-		test eax, eax
-		jz Ende
-		cmp eax, 10h
-		jb Bytes_Crypt_Short
-		sub eax, 10h
-		add eax, esi
+		je Ende
 
-	Bytes_Crypt_Long:
+    mov edx, dword ptr add_Bytes[esp]
+		test edx, edx
+		je Ende
+    mov edx, dword ptr [edx]
+    cmp edx, 10h
+    ja ChipperText
+    xor eax, eax
+    mov dword ptr [edx], eax
+    je Ende
+
+  ChipperText:
+    call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
+    mov edi, eax
+
+    mov edx, dword ptr add_Bytes[esp]
+    mov ebx, edx
+    mov edx, dword ptr [edx]
+    sub edx, 10h
+    add edx, esi
+    mov ecx, dword ptr [edx]
+    mov dword ptr [ebx], ecx
+
+		mov	ecx, dword ptr adauc_16IVec[esp]
+		test ecx, ecx
+		je Ende
+		movups xmm2, xmmword ptr [ecx]
+
+		mov ecx, dword ptr adauc256Key[esp]
+		test ecx, ecx
+		je Ende
+
+	Bytes_Crypt:
 		movups xmm0, xmmword ptr [esi]
 		movups xmm1, xmm0
-		pxor xmm0, xmmword ptr [ebx]
+		pxor xmm0, xmmword ptr [ecx]
 
-		aesdec xmm0, xmmword ptr [ebx + 10h]
-		aesdec xmm0, xmmword ptr [ebx + 20h]
-		aesdec xmm0, xmmword ptr [ebx + 30h]
-		aesdec xmm0, xmmword ptr [ebx + 40h]
-		aesdec xmm0, xmmword ptr [ebx + 50h]
-		aesdec xmm0, xmmword ptr [ebx + 60h]
-		aesdec xmm0, xmmword ptr [ebx + 70h]
-		aesdec xmm0, xmmword ptr [ebx + 80h]
-		aesdec xmm0, xmmword ptr [ebx + 90h]
-		aesdec xmm0, xmmword ptr [ebx + 0a0h]
-		aesdec xmm0, xmmword ptr [ebx + 0b0h]
-		aesdec xmm0, xmmword ptr [ebx + 0c0h]
-		aesdec xmm0, xmmword ptr [ebx + 0d0h]
-		aesdeclast xmm0, xmmword ptr [ebx + 0e0h]
+		aesdec xmm0, xmmword ptr [ecx + 10h]
+		aesdec xmm0, xmmword ptr [ecx + 20h]
+		aesdec xmm0, xmmword ptr [ecx + 30h]
+		aesdec xmm0, xmmword ptr [ecx + 40h]
+		aesdec xmm0, xmmword ptr [ecx + 50h]
+		aesdec xmm0, xmmword ptr [ecx + 60h]
+		aesdec xmm0, xmmword ptr [ecx + 70h]
+		aesdec xmm0, xmmword ptr [ecx + 80h]
+		aesdec xmm0, xmmword ptr [ecx + 90h]
+		aesdec xmm0, xmmword ptr [ecx + 0a0h]
+		aesdec xmm0, xmmword ptr [ecx + 0b0h]
+		aesdec xmm0, xmmword ptr [ecx + 0c0h]
+		aesdec xmm0, xmmword ptr [ecx + 0d0h]
+		aesdeclast xmm0, xmmword ptr [ecx + 0e0h]
 
 		pxor xmm0, xmm2
 		movups xmmword ptr [edi], xmm0
@@ -199,58 +217,24 @@ a_auc256Key = 24
 
 		add esi, 10h
 		add edi, 10h
-		cmp	esi, eax
-		jbe Bytes_Crypt_Long
+		cmp	esi, edx
+		jb Bytes_Crypt
+    jmp short Ende
 
-		add eax, 10h
-		sub eax, esi
-		test eax, eax
-		jz Ende
-
-	Bytes_Crypt_Short:
-		xor ecx, ecx
-		xor edx, edx
-	LastByte_ChipperText:
-		mov dl, byte ptr [esi + ecx]
-		mov byte ptr [ebx + 0f0h + ecx], dl
-		add ecx, 1
-		cmp ecx, eax
-		jb LastByte_ChipperText
-
-		movaps xmm0, xmmword ptr [ebx + 0f0h]
-		pxor xmm0, xmmword ptr [ebx]
-
-		aesdec xmm0, xmmword ptr [ebx + 10h]
-		aesdec xmm0, xmmword ptr [ebx + 20h]
-		aesdec xmm0, xmmword ptr [ebx + 30h]
-		aesdec xmm0, xmmword ptr [ebx + 40h]
-		aesdec xmm0, xmmword ptr [ebx + 50h]
-		aesdec xmm0, xmmword ptr [ebx + 60h]
-		aesdec xmm0, xmmword ptr [ebx + 70h]
-		aesdec xmm0, xmmword ptr [ebx + 80h]
-		aesdec xmm0, xmmword ptr [ebx + 90h]
-		aesdec xmm0, xmmword ptr [ebx + 0a0h]
-		aesdec xmm0, xmmword ptr [ebx + 0b0h]
-		aesdec xmm0, xmmword ptr [ebx + 0c0h]
-		aesdec xmm0, xmmword ptr [ebx + 0d0h]
-		aesdeclast xmm0, xmmword ptr [ebx + 0e0h]
-
-		xor ecx, ecx
-	LastByte_DecryptText:
-		mov dl, byte ptr [ebx + 0f0h + ecx]
-		mov byte ptr [edi + ecx], dl
-		add ecx, 1
-		cmp ecx, eax
-		jb LastByte_DecryptText
+  Ende_Frei:
+    mov edx, edi
+    mov ecx, dword ptr sdp_Speicher[esp]
+    call ?VMFreiS@System@RePag@@YQXPBXPAX@Z ; VMFreiS(vmSpeicher, vbAdresse)
+    xor eax, eax
 
 	Ende:
+    add esp, s_Bytes
 		pop	edi
 		pop	esi
 		pop	ebx
 		ret	12
-?AES_CBC_Decrypt@@YQXPBXPAXKQAE2@Z ENDP
+?AES_CBC_Decrypt@@YQPADPBX0AAKQAE2@Z ENDP
 _Text ENDS
-;----------------------------------------------------------------------------
 CS_AES_Crypt ENDS
 ;----------------------------------------------------------------------------
 END
