@@ -65,7 +65,7 @@ AES_256_ASSIST_2 PROC PRIVATE
 AES_256_ASSIST_2 ENDP
 ;----------------------------------------------------------------------------
 ?AES_SetEncryptKey@@YQXPEAEQEAE@Z PROC PUBLIC
- 		test rcx, rcx
+		test rcx, rcx
 		jz Ende
 		test rdx, rdx
 		jz Ende
@@ -132,7 +132,7 @@ aqp_auc240TempKey = 40
 		push rsi
 		push rdi
 
- 		test rcx, rcx
+		test rcx, rcx
 		jz Ende
 		mov rsi, rdx
 		test rsi, rsi

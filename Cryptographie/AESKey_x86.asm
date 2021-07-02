@@ -69,7 +69,7 @@ AES_256_ASSIST_2 PROC PRIVATE
 AES_256_ASSIST_2 ENDP
 ;----------------------------------------------------------------------------
 ?AES_SetEncryptKey@@YQXPAEQAE@Z PROC PUBLIC
- 		test ecx, ecx
+		test ecx, ecx
 		jz Ende
 		test edx, edx
 		jz Ende
@@ -136,7 +136,7 @@ a_auc240TempKey = 12
 		push esi
 		push edi
 
- 		test ecx, ecx
+		test ecx, ecx
 		jz Ende
 		mov esi, edx
 		test esi, esi

@@ -50,42 +50,42 @@ add_Bytes = 16 + s_Bytes
 ?AES_CBC_Encrypt@@YQPADPBX0AAKQAE2@Z PROC PUBLIC
 		push esi
 		push edi
-    push ebx
-    sub esp, s_Bytes
+		push ebx
+		sub esp, s_Bytes
 
-    mov dword ptr sdp_Speicher[esp], ecx
+		mov dword ptr sdp_Speicher[esp], ecx
 
 		mov	esi, edx
 		test esi, esi
 		je Ende
 
-    mov ebx, dword ptr add_Bytes[esp]
+		mov ebx, dword ptr add_Bytes[esp]
 		test ebx, ebx
 		je Ende
-    mov eax, dword ptr [ebx]
-    mov dword ptr sdi_Bytes[esp], eax
+		mov eax, dword ptr [ebx]
+		mov dword ptr sdi_Bytes[esp], eax
 
-    xor edx, edx
-    mov ecx, 10h
-    div ecx
-    test edx, edx
-    je NoRound
-    add eax, 1
+		xor edx, edx
+		mov ecx, 10h
+		div ecx
+		test edx, edx
+		je NoRound
+		add eax, 1
 
-  NoRound:
-    add eax, 1
-    mov edx, 10h
-    imul edx, eax
-    mov dword ptr [ebx], edx
-    mov ecx, dword ptr sdp_Speicher[esp]
-    call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
-    mov edi, eax
+	NoRound:
+		add eax, 1
+		mov edx, 10h
+		imul edx, eax
+		mov dword ptr [ebx], edx
+		mov ecx, dword ptr sdp_Speicher[esp]
+		call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
+		mov edi, eax
 
-    mov edx, dword ptr add_Bytes[esp]
-    mov edx, dword ptr [edx]
-    sub edx, 10h
-    mov ecx, dword ptr sdi_Bytes[esp]
-    mov dword ptr [edi + edx], ecx
+		mov edx, dword ptr add_Bytes[esp]
+		mov edx, dword ptr [edx]
+		sub edx, 10h
+		mov ecx, dword ptr sdi_Bytes[esp]
+		mov dword ptr [edi + edx], ecx
 		add edx, esi
 
 		mov	ecx, dword ptr adauc_16IVec[esp]
@@ -123,17 +123,17 @@ add_Bytes = 16 + s_Bytes
 		add edi, 10h
 		cmp	esi, edx
 		jb Bytes_Crypt
-    jmp short Ende
+		jmp short Ende
 
-  Ende_Frei:
-    mov edx, edi
-    mov ecx, dword ptr sdp_Speicher[esp]
-    call ?VMFrei@System@RePag@@YQXPBXPAX@Z ; VMFrei(vmSpeicher, vbAdresse)
-    xor eax, eax
+	Ende_Frei:
+		mov edx, edi
+		mov ecx, dword ptr sdp_Speicher[esp]
+		call ?VMFrei@System@RePag@@YQXPBXPAX@Z ; VMFrei(vmSpeicher, vbAdresse)
+		xor eax, eax
 
 	Ende:
-    add esp, s_Bytes
-    pop ebx
+		add esp, s_Bytes
+		pop ebx
 		pop	edi
 		pop	esi
 		ret	12
@@ -152,35 +152,33 @@ add_Bytes = 16 + s_Bytes
 		push ebx
 		push esi
 		push edi
-    sub esp, s_Bytes
-
-    mov dword ptr sdp_Speicher[esp], ecx
+		sub esp, s_Bytes
 
 		mov esi, edx
 		test esi, esi
 		je Ende
 
-    mov edx, dword ptr add_Bytes[esp]
+		mov edx, dword ptr add_Bytes[esp]
 		test edx, edx
 		je Ende
-    mov edx, dword ptr [edx]
-    cmp edx, 10h
-    ja ChipperText
-    xor eax, eax
-    mov dword ptr [edx], eax
-    je Ende
+		mov edx, dword ptr [edx]
+		cmp edx, 10h
+		ja ChipperText
+		xor eax, eax
+		mov dword ptr [edx], eax
+		je Ende
 
-  ChipperText:
-    call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
-    mov edi, eax
+	ChipperText:
+		call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
+		mov edi, eax
 
-    mov edx, dword ptr add_Bytes[esp]
-    mov ebx, edx
-    mov edx, dword ptr [edx]
-    sub edx, 10h
-    add edx, esi
-    mov ecx, dword ptr [edx]
-    mov dword ptr [ebx], ecx
+		mov edx, dword ptr add_Bytes[esp]
+		mov ebx, edx
+		mov edx, dword ptr [edx]
+		sub edx, 10h
+		add edx, esi
+		mov ecx, dword ptr [edx]
+		mov dword ptr [ebx], ecx
 
 		mov	ecx, dword ptr adauc_16IVec[esp]
 		test ecx, ecx
@@ -219,16 +217,16 @@ add_Bytes = 16 + s_Bytes
 		add edi, 10h
 		cmp	esi, edx
 		jb Bytes_Crypt
-    jmp short Ende
+		jmp short Ende
 
-  Ende_Frei:
-    mov edx, edi
-    mov ecx, dword ptr sdp_Speicher[esp]
-    call ?VMFreiS@System@RePag@@YQXPBXPAX@Z ; VMFreiS(vmSpeicher, vbAdresse)
-    xor eax, eax
+	Ende_Frei:
+		mov edx, edi
+		mov ecx, dword ptr sdp_Speicher[esp]
+		call ?VMFreiS@System@RePag@@YQXPBXPAX@Z ; VMFreiS(vmSpeicher, vbAdresse)
+		xor eax, eax
 
 	Ende:
-    add esp, s_Bytes
+		add esp, s_Bytes
 		pop	edi
 		pop	esi
 		pop	ebx
@@ -237,4 +235,364 @@ add_Bytes = 16 + s_Bytes
 _Text ENDS
 CS_AES_Crypt ENDS
 ;----------------------------------------------------------------------------
+CS_Crypt SEGMENT PARA PRIVATE FLAT EXECUTE
+;----------------------------------------------------------------------------
+; ax usBytes
+; cx usPositions_Daten
+; dh ucPosition_Schlussel
+; dl ucRest
+bit128Key = 8
+pucCrypthText = 12
+usBytes = 16
+?KeyDecrypt@@YGXQAEPAEG@Z PROC
+		push ebp
+		mov	ebp, esp
+		push ebx
+		push edi
+		push esi
+
+		mov edx, 8
+		movzx eax, word ptr usBytes[ebp]
+		div dl
+		mov dl, ah
+		movzx eax, word ptr usBytes[ebp]
+		mov dh, 0
+		xor ecx, ecx
+		mov edi, dword ptr bit128Key[ebp]
+		mov esi, dword ptr pucCrypthText[ebp]
+		jmp CoreDecrypt_Schleife_Vergleich
+
+	CoreDecrypt_Schleife_Anfang:
+		mov edi, dword ptr bit128Key[ebp] 
+		add edi, 8
+
+	CoreDecrypt_Schleife_Vergleich:
+		cmp ecx, eax
+		jge CoreDecrypt_Schleife_Ende
+
+		cmp dh, 16
+		jne CoreDecrypt_Schlussel
+		xor dh, dh
+		sub edi, 8
+
+	CoreDecrypt_Schlussel:
+		mov bh, byte ptr [esi]
+		add bh, byte ptr [edi]
+		mov byte ptr [esi], bh
+
+		mov bh, byte ptr [esi + 1]
+		add bh, byte ptr [edi + 1]
+		mov byte ptr [esi + 1], bh
+
+		mov bh, byte ptr [esi + 2]
+		add bh, byte ptr [edi + 2]
+		mov byte ptr [esi + 2], bh
+
+		mov bh, byte ptr [esi + 3]
+		add bh, byte ptr [edi + 3]
+		mov byte ptr [esi + 3], bh
+
+		mov bh, byte ptr [esi + 4]
+		add bh, byte ptr [edi + 4]
+		mov byte ptr [esi + 4], bh
+
+		mov bh, byte ptr [esi + 5]
+		add bh, byte ptr [edi + 5]
+		mov byte ptr [esi + 5], bh
+
+		mov bh, byte ptr [esi + 6]
+		add bh, byte ptr [edi + 6]
+		mov byte ptr [esi + 6], bh
+
+		mov bh, byte ptr [esi + 7]
+		add bh, byte ptr [edi + 7]
+		mov byte ptr [esi + 7], bh
+		jmp CoreDecrypt_Schlussel_Add
+
+	CoreDecrypt_Schlussel_Add:
+		add dh, 8
+		add ecx, 8
+
+		mov bx, cx
+		add bx, 8
+		cmp ax, bx
+		jl CoreDecrypt_Rest
+
+		mov edi, esi
+		add esi, 8
+		add edi, 7
+
+		mov bh, byte ptr [esi]
+		xor bh, byte ptr [edi]
+		mov byte ptr [esi], bh
+
+		mov bh, byte ptr [esi + 1]
+		xor bh, byte ptr [edi - 1]
+		mov byte ptr [esi + 1], bh
+
+		mov bh, byte ptr [esi + 2]
+		xor bh, byte ptr [edi - 2]
+		mov byte ptr [esi + 2], bh
+
+		mov bh, byte ptr [esi + 3]
+		xor bh, byte ptr [edi - 3]
+		mov byte ptr [esi + 3], bh
+
+		mov bh, byte ptr [esi + 4]
+		xor bh, byte ptr [edi - 4]
+		mov byte ptr [esi + 4], bh
+
+		mov bh, byte ptr [esi + 5]
+		xor bh, byte ptr [edi - 5]
+		mov byte ptr [esi + 5], bh
+
+		mov bh, byte ptr [esi + 6]
+		xor bh, byte ptr [edi - 6]
+		mov byte ptr [esi + 6], bh
+
+		mov bh, byte ptr [esi + 7]
+		xor bh, byte ptr [edi - 7]
+		mov byte ptr [esi + 7], bh
+		jmp CoreDecrypt_Schleife_Anfang
+
+	CoreDecrypt_Rest:
+		cmp dl, 0
+		je CoreDecrypt_Schleife_Ende
+
+		mov eax, 1
+		add esi, 7
+		mov edi, esi
+		jmp CoreDecrypt_Schleife_Rest_Vergleich
+
+	CoreDecrypt_Schleife_Rest_Anfang:
+		add al, 1
+		sub edi, 1
+
+	CoreDecrypt_Schleife_Rest_Vergleich:
+		cmp al, dl
+		jg CoreDecrypt_Rest_Schlussel
+
+		mov bh, byte ptr [esi + eax]
+		xor bh, byte ptr [edi]
+		mov byte ptr [esi + eax], bh
+		jmp CoreDecrypt_Schleife_Rest_Anfang
+
+	CoreDecrypt_Rest_Schlussel:
+		cmp dh, 16
+		jne CoreDecrypt_B
+		xor dh, dh
+
+	CoreDecrypt_B:
+		mov edi, dword ptr bit128Key[ebp]
+		bt dx, 11
+		jnc CoreDecrypt_RestAdd_Vergleich
+		add edi, 8 
+		jmp CoreDecrypt_RestAdd_Vergleich
+
+	CoreDecrypt_RestAdd_Anfang:
+		add edi, 1
+		sub dl, 1
+
+	CoreDecrypt_RestAdd_Vergleich:
+		cmp dl, 0
+		je CoreDecrypt_Schleife_Ende
+
+		add esi, 1
+		mov bh, byte ptr [esi] 
+		add bh, byte ptr [edi]
+		mov byte ptr [esi], bh
+		jmp CoreDecrypt_RestAdd_Anfang
+
+	CoreDecrypt_Schleife_Ende:
+		pop esi
+		pop edi
+		pop ebx
+		mov esp, ebp
+		pop ebp
+		ret 12
+?KeyDecrypt@@YGXQAEPAEG@Z ENDP
+;----------------------------------------------------------------------------
+; ax usBytes
+; cx usPositions_Daten
+; dh ucPosition_Schlussel
+; dl ucRest
+?KeyEncrypt@@YGXQAEPAEG@Z PROC
+		push ebp
+		mov	ebp, esp
+		push ebx
+		push edi
+		push esi
+
+		mov esi, dword ptr pucCrypthText[ebp]
+		mov edi, dword ptr bit128Key[ebp]
+
+		mov edx, 8
+		movzx eax, word ptr usBytes[ebp]
+		div dl
+		mov dl, ah
+
+		movzx eax, word ptr usBytes[ebp]
+		mov ecx, eax
+		shr ax, 4
+		shl ax, 4
+		sub cx, ax
+		mov dh, cl
+
+		movzx eax, word ptr usBytes[ebp]
+		mov ecx, eax
+		sub ecx, 1
+		movzx ebx, dh
+		add edi, ebx
+		mov ebx, eax
+		sub bl, dl
+		shl eax, 16
+		jmp CoreEncrypt_Schleife_RestSub_Vergleich
+
+	CoreEncrypt_Schleife_RestSub_Anfang:
+		sub ecx, 1
+		sub dh, 1
+
+	CoreEncrypt_Schleife_RestSub_Vergleich:
+		cmp cx, bx
+		jl CoreEncrypt_Schleife_RestSub_Ende
+
+		sub edi, 1
+		mov al, byte ptr [esi + ecx]
+		sub al, byte ptr [edi]
+		mov byte ptr [esi + ecx], al
+		jmp CoreEncrypt_Schleife_RestSub_Anfang
+
+	CoreEncrypt_Schleife_RestSub_Ende:
+		shr eax, 16
+		add cx, 1
+		mov ebx, ecx
+		mov edi, esi
+		add edi, ebx
+		sub edi, 1
+		shl edx, 16
+		jmp CoreEncrypt_Schleife_Rest_Vergleich
+
+	CoreEncrypt_Schleife_Rest_Anfang:
+		add ebx, 1
+		sub edi, 1
+
+	CoreEncrypt_Schleife_Rest_Vergleich:
+		cmp bx, ax
+		jge CoreEncrypt_Schleife_Rest_Ende
+
+		mov dl, byte ptr [esi + ebx]
+		xor dl, byte ptr [edi]
+		mov byte ptr [esi + ebx], dl
+		jmp CoreEncrypt_Schleife_Rest_Anfang
+
+	CoreEncrypt_Schleife_Rest_Ende:
+		shr edx, 24
+		mov edi, dword ptr bit128Key[ebp]
+		add edi, edx
+		test dl, dl
+		jne CoreEncrypt_B
+		mov dl, 16
+		add edi, 16
+
+	CoreEncrypt_B:
+		sub ecx, 1
+		add esi, ecx
+		add ecx, 1
+		jmp CoreEncrypt_A
+
+	CoreEncrypt_Schleife_Anfang:
+		sub esi, 1
+		sub dl, 8
+		mov edi, dword ptr bit128Key[ebp]
+		add edi, edx
+		test dl, dl
+		jne CoreEncrypt_A
+		mov dl, 16
+		add edi, 16
+
+	CoreEncrypt_A:
+		sub edi, 1
+		mov bh, byte ptr [esi]
+		sub bh, byte ptr [edi]
+		mov byte ptr [esi], bh
+
+		mov bh, byte ptr [esi - 1]
+		sub bh, byte ptr [edi - 1]
+		mov byte ptr [esi - 1], bh
+
+		mov bh, byte ptr [esi - 2]
+		sub bh, byte ptr [edi - 2]
+		mov byte ptr [esi - 2], bh
+
+		mov bh, byte ptr [esi - 3]
+		sub bh, byte ptr [edi - 3]
+		mov byte ptr [esi - 3], bh
+
+		mov bh, byte ptr [esi - 4]
+		sub bh, byte ptr [edi - 4]
+		mov byte ptr [esi - 4], bh
+
+		mov bh, byte ptr [esi - 5]
+		sub bh, byte ptr [edi - 5]
+		mov byte ptr [esi - 5], bh
+
+		mov bh, byte ptr [esi - 6]
+		sub bh, byte ptr [edi - 6]
+		mov byte ptr [esi - 6], bh
+
+		mov bh, byte ptr [esi - 7]
+		sub bh, byte ptr [edi - 7]
+		mov byte ptr [esi - 7], bh
+
+		sub cx, 8
+		test cx, cx
+		je CoreEncrypt_Schleife_Ende
+
+		sub esi, 7
+		mov edi, esi
+		sub edi, 1
+
+		mov bh, byte ptr [esi]
+		xor bh, byte ptr [edi]
+		mov byte ptr [esi], bh
+
+		mov bh, byte ptr [esi + 1]
+		xor bh, byte ptr [edi - 1]
+		mov byte ptr [esi + 1], bh
+
+		mov bh, byte ptr [esi + 2]
+		xor bh, byte ptr [edi - 2]
+		mov byte ptr [esi + 2], bh
+
+		mov bh, byte ptr [esi + 3]
+		xor bh, byte ptr [edi - 3]
+		mov byte ptr [esi + 3], bh
+
+		mov bh, byte ptr [esi + 4]
+		xor bh, byte ptr [edi - 4]
+		mov byte ptr [esi + 4], bh
+
+		mov bh, byte ptr [esi + 5]
+		xor bh, byte ptr [edi - 5]
+		mov byte ptr [esi + 5], bh
+
+		mov bh, byte ptr [esi + 6]
+		xor bh, byte ptr [edi - 6]
+		mov byte ptr [esi + 6], bh
+
+		mov bh, byte ptr [esi + 7]
+		xor bh, byte ptr [edi - 7]
+		mov byte ptr [esi + 7], bh
+		jmp CoreEncrypt_Schleife_Anfang
+
+	CoreEncrypt_Schleife_Ende:
+		pop esi
+		pop edi
+		pop ebx
+		mov esp, ebp
+		pop ebp
+		ret 12
+?KeyEncrypt@@YGXQAEPAEG@Z ENDP
+;----------------------------------------------------------------------------
+CS_Crypt ENDS
 END
