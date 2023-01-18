@@ -39,8 +39,10 @@ INCLUDELIB OLDNAMES
 CS_AES_Crypt SEGMENT PRIVATE EXECUTE
 ;----------------------------------------------------------------------------
 _Text SEGMENT
-s_Bytes = 8
+s_Bytes = 28
 
+sxp_Kleiner_16 = 12
+sdp_PlainText = 8
 sdi_Bytes = 4
 sdp_Speicher = 0
 
@@ -58,6 +60,7 @@ add_Bytes = 16 + s_Bytes
 		mov	esi, edx
 		test esi, esi
 		je Ende
+		mov dword ptr sdp_PlainText[esp], edx
 
 		mov ebx, dword ptr add_Bytes[esp]
 		test ebx, ebx
@@ -87,35 +90,59 @@ add_Bytes = 16 + s_Bytes
 		mov ecx, dword ptr sdi_Bytes[esp]
 		mov dword ptr [edi + edx], ecx
 		add edx, esi
+		sub edx, 10h
+		xor ebx, ebx
 
 		mov	ecx, dword ptr adauc_16IVec[esp]
 		test ecx, ecx
 		je Ende_Frei
 		movups xmm0, xmmword ptr [ecx]
 
-		mov ecx, dword ptr adauc_256Key[esp]
-		test ecx, ecx
+		mov eax, dword ptr adauc_256Key[esp]
+		test eax, eax
 		je Ende_Frei
+
+		mov ecx, dword ptr sdi_Bytes[esp]
+		cmp ecx, 10h
+		jae short Bytes_Crypt
+
+		push esi
+		push edi
+		
+		mov esi, sdp_PlainText[esp]
+
+		pxor xmm1, xmm1
+		movdqu xmmword ptr sxp_Kleiner_16[esp], xmm1
+		lea edi, sxp_Kleiner_16[esp]
+		rep movsb
+		vmovdqu xmm1, xmmword ptr sxp_Kleiner_16[esp]
+
+		pop edi
+		pop esi
+
+		jmp Bytes_Crypt_Kleiner_16
 
 	Bytes_Crypt:
 		movups xmm1, xmmword ptr [esi]
-		pxor xmm0, xmm1
-		pxor xmm0, xmmword ptr [ecx]
 
-		aesenc xmm0, xmmword ptr [ecx + 10h]
-		aesenc xmm0, xmmword ptr [ecx + 20h]
-		aesenc xmm0, xmmword ptr [ecx + 30h]
-		aesenc xmm0, xmmword ptr [ecx + 40h]
-		aesenc xmm0, xmmword ptr [ecx + 50h]
-		aesenc xmm0, xmmword ptr [ecx + 60h]
-		aesenc xmm0, xmmword ptr [ecx + 70h]
-		aesenc xmm0, xmmword ptr [ecx + 80h]
-		aesenc xmm0, xmmword ptr [ecx + 90h]
-		aesenc xmm0, xmmword ptr [ecx + 0a0h]
-		aesenc xmm0, xmmword ptr [ecx + 0b0h]
-		aesenc xmm0, xmmword ptr [ecx + 0c0h]
-		aesenc xmm0, xmmword ptr [ecx + 0d0h]
-		aesenclast xmm0, xmmword ptr [ecx + 0e0h]
+	Bytes_Crypt_Kleiner_16:
+		pxor xmm0, xmm1
+		pxor xmm0, xmmword ptr [eax]
+
+		aesenc xmm0, xmmword ptr [eax + 10h]
+		aesenc xmm0, xmmword ptr [eax + 20h]
+		aesenc xmm0, xmmword ptr [eax + 30h]
+		aesenc xmm0, xmmword ptr [eax + 40h]
+		aesenc xmm0, xmmword ptr [eax + 50h]
+		aesenc xmm0, xmmword ptr [eax + 60h]
+		aesenc xmm0, xmmword ptr [eax + 70h]
+		aesenc xmm0, xmmword ptr [eax + 80h]
+		aesenc xmm0, xmmword ptr [eax + 90h]
+		aesenc xmm0, xmmword ptr [eax + 0a0h]
+		aesenc xmm0, xmmword ptr [eax + 0b0h]
+		aesenc xmm0, xmmword ptr [eax + 0c0h]
+		aesenc xmm0, xmmword ptr [eax + 0d0h]
+		aesenclast xmm0, xmmword ptr [eax + 0e0h]
 
 		movups xmmword ptr [edi], xmm0
 
@@ -123,7 +150,30 @@ add_Bytes = 16 + s_Bytes
 		add edi, 10h
 		cmp	esi, edx
 		jb Bytes_Crypt
-		jmp short Ende
+		test ebx, ebx
+		jne short Ende
+
+		push edi
+		push ecx
+		
+		mov ecx, dword ptr sdi_Bytes[esp]
+		cmp ecx, 10h
+		jbe short Ende
+		add ecx, dword ptr sdp_PlainText[esp]
+		sub ecx, edx
+
+		pxor xmm1, xmm1
+		movdqu xmmword ptr sxp_Kleiner_16[esp], xmm1
+		lea edi, sxp_Kleiner_16[esp]
+		rep movsb
+		movdqu xmm1, xmmword ptr sxp_Kleiner_16[esp]
+
+		pop ecx
+		pop edi
+		
+		mov esi, edx
+		add ebx, 1
+		jmp	Bytes_Crypt_Kleiner_16
 
 	Ende_Frei:
 		mov edx, edi

@@ -36,18 +36,21 @@ INCLUDE ..\..\Include\ADT_x64.inc
 CS_AES_Crypt SEGMENT EXECUTE
 ;----------------------------------------------------------------------------
 _Text SEGMENT
-s_Bytes = 16
+s_push = 16
+s_Bytes = 32
 
-aqp_Key = 72 + s_Bytes
+aqp_Key = 72 + s_Bytes + s_push
 
-;sqp_Key = 64 + s_Bytes
-sqp_Vector = 56 + s_Bytes
-sqp_Bytes = 48 + s_Bytes
-sqp_PlainText = 40 + s_Bytes
+sqp_Vector = 56 + s_Bytes + s_push
+sqp_Bytes = 48 + s_Bytes + s_push
+sqp_PlainText = 40 + s_Bytes + s_push
 
-sqp_Speicher = 4 + s_ShadowRegister
-sdi_Bytes = 0 + s_ShadowRegister
+sxp_Kleiner_16 = 12 + s_ShadowRegister + s_push
+sqp_Speicher = 4 + s_ShadowRegister + s_push
+sdi_Bytes = 0 + s_ShadowRegister + s_push
 ?AES_CBC_Encrypt@@YQPEADPEBX0AEAKQEAE2@Z PROC PUBLIC
+		push rsi
+		push rdi
 		sub rsp, s_ShadowRegister + s_Bytes
 
 		mov qword ptr sqp_Speicher[rsp], rcx
@@ -93,31 +96,50 @@ sdi_Bytes = 0 + s_ShadowRegister
 		mov dword ptr [r8 + rdx], r9d
 		mov rcx, qword ptr sqp_PlainText[rsp]
 		add rdx, rcx
+		sub rdx, 10h
+		xor rdi, rdi
 
-		mov r9, qword ptr sqp_Vector[rsp]
-		movups xmm0, xmmword ptr [r9]
+		mov r10, qword ptr sqp_Vector[rsp]
+		movups xmm0, xmmword ptr [r10]
 
-		mov r9, qword ptr aqp_Key[rsp]
+		mov r10, qword ptr aqp_Key[rsp]
+
+		cmp r9, 10h
+		jae short Bytes_Crypt
+		
+		mov rsi, rcx
+		mov rcx, r9
+
+		vpxor xmm1, xmm1, xmm1
+		vmovdqu xmmword ptr sxp_Kleiner_16[rsp], xmm1
+		lea rdi, sxp_Kleiner_16[rsp]
+		rep movsb
+		vmovdqu xmm1, xmmword ptr sxp_Kleiner_16[rsp]
+
+		mov rcx, rdx
+		jmp Bytes_Crypt_Kleiner_16
 
 	Bytes_Crypt:
 		movups xmm1, xmmword ptr [rcx]
-		pxor xmm0, xmm1
-		pxor xmm0, xmmword ptr [r9]
 
-		aesenc xmm0, xmmword ptr [r9 + 10h]
-		aesenc xmm0, xmmword ptr [r9 + 20h]
-		aesenc xmm0, xmmword ptr [r9 + 30h]
-		aesenc xmm0, xmmword ptr [r9 + 40h]
-		aesenc xmm0, xmmword ptr [r9 + 50h]
-		aesenc xmm0, xmmword ptr [r9 + 60h]
-		aesenc xmm0, xmmword ptr [r9 + 70h]
-		aesenc xmm0, xmmword ptr [r9 + 80h]
-		aesenc xmm0, xmmword ptr [r9 + 90h]
-		aesenc xmm0, xmmword ptr [r9 + 0a0h]
-		aesenc xmm0, xmmword ptr [r9 + 0b0h]
-		aesenc xmm0, xmmword ptr [r9 + 0c0h]
-		aesenc xmm0, xmmword ptr [r9 + 0d0h]
-		aesenclast xmm0, xmmword ptr [r9 + 0e0h]
+	Bytes_Crypt_Kleiner_16:
+		pxor xmm0, xmm1
+		pxor xmm0, xmmword ptr [r10]
+
+		aesenc xmm0, xmmword ptr [r10 + 10h]
+		aesenc xmm0, xmmword ptr [r10 + 20h]
+		aesenc xmm0, xmmword ptr [r10 + 30h]
+		aesenc xmm0, xmmword ptr [r10 + 40h]
+		aesenc xmm0, xmmword ptr [r10 + 50h]
+		aesenc xmm0, xmmword ptr [r10 + 60h]
+		aesenc xmm0, xmmword ptr [r10 + 70h]
+		aesenc xmm0, xmmword ptr [r10 + 80h]
+		aesenc xmm0, xmmword ptr [r10 + 90h]
+		aesenc xmm0, xmmword ptr [r10 + 0a0h]
+		aesenc xmm0, xmmword ptr [r10 + 0b0h]
+		aesenc xmm0, xmmword ptr [r10 + 0c0h]
+		aesenc xmm0, xmmword ptr [r10 + 0d0h]
+		aesenclast xmm0, xmmword ptr [r10 + 0e0h]
 
 		movups xmmword ptr [r8], xmm0
 
@@ -125,9 +147,28 @@ sdi_Bytes = 0 + s_ShadowRegister
 		add r8, 10h
 		cmp	rcx, rdx
 		jb Bytes_Crypt
+		test rdi, rdi
+		jne short Ende
+
+		mov rsi, rcx
+		mov ecx, dword ptr sdi_Bytes[rsp]
+		cmp ecx, 10h
+		jbe short Ende
+		add rcx, qword ptr sqp_PlainText[rsp]
+		sub rcx, rdx
+
+		vpxor xmm1, xmm1, xmm1
+		vmovdqu xmmword ptr sxp_Kleiner_16[rsp], xmm1
+		lea rdi, sxp_Kleiner_16[rsp]
+		rep movsb
+		vmovdqu xmm1, xmmword ptr sxp_Kleiner_16[rsp]
+		mov rcx, rdx 
+		jmp Bytes_Crypt_Kleiner_16
 
 	Ende:
 		add rsp, s_ShadowRegister + s_Bytes
+		pop rdi
+		pop rsi
 		ret
 ?AES_CBC_Encrypt@@YQPEADPEBX0AEAKQEAE2@Z ENDP
 _Text ENDS
