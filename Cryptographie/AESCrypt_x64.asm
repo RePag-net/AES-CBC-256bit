@@ -6,16 +6,16 @@
 ;/****************************************************************************
 ;  The MIT License(MIT)
 ;
-;  Copyright(c) 2021 René Pagel
+;  Copyright(c) 2024 René Pagel
 ;
 ;  Permission is hereby granted, free of charge, to any person obtaining a copy
-;  of this softwareand associated documentation files(the "Software"), to deal
+;  of this software and associated documentation files(the "Software"), to deal
 ;  in the Software without restriction, including without limitation the rights
 ;  to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 ;  copies of the Software, and to permit persons to whom the Software is
 ;  furnished to do so, subject to the following conditions :
 ;
-;  The above copyright noticeand this permission notice shall be included in all
+;  The above copyright notice and this permission notice shall be included in all
 ;  copies or substantial portions of the Software.
 ;
 ;  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -55,6 +55,8 @@ sdi_Bytes = 0 + s_ShadowRegister + s_push
 
 		mov qword ptr sqp_Speicher[rsp], rcx
 
+		xor rax, rax
+
 		test rdx, rdx
 		je Ende
 		mov qword ptr sqp_PlainText[rsp], rdx
@@ -77,7 +79,7 @@ sdi_Bytes = 0 + s_ShadowRegister + s_push
 		mov rcx, 10h
 		div rcx
 		test rdx, rdx
-		je NoRound
+		je short NoRound
 		add rax, 1
 	
 	NoRound:
@@ -100,9 +102,13 @@ sdi_Bytes = 0 + s_ShadowRegister + s_push
 		xor rdi, rdi
 
 		mov r10, qword ptr sqp_Vector[rsp]
+		test r10, r10
+		je Ende_Frei
 		movups xmm0, xmmword ptr [r10]
 
 		mov r10, qword ptr aqp_Key[rsp]
+		test r10, r10
+		je Ende_Frei
 
 		cmp r9, 10h
 		jae short Bytes_Crypt
@@ -165,6 +171,12 @@ sdi_Bytes = 0 + s_ShadowRegister + s_push
 		mov rcx, rdx 
 		jmp Bytes_Crypt_Kleiner_16
 
+	Ende_Frei:
+		mov rdx, rax
+		mov rcx, qword ptr sqp_Speicher[rsp]
+		call ?VMFrei@System@RePag@@YQXPEBXPEAX@Z ; VMFrei(vmSpeicher, vbAdresse)
+		xor rax, rax
+
 	Ende:
 		add rsp, s_ShadowRegister + s_Bytes
 		pop rdi
@@ -205,6 +217,7 @@ sqp_ChipperText = 40
 		je Ende
 
 	CipperText:
+		;sub rdx, 10h
 		call ?VMBlockS@System@RePag@@YQPEADPEBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
 		mov r8, rax
 
@@ -266,7 +279,7 @@ _Text SEGMENT
 ; cx usPositions_Daten
 ; dh ucPosition_Schlussel
 ; dl ucRest
-?KeyDecrypt@@YAXQEAEPEAEG@Z PROC
+?KeyDecrypt@@YQXQEAEPEAEG@Z PROC
 		push rbx
 		push rdi
 		push rsi
@@ -274,6 +287,7 @@ _Text SEGMENT
 		mov rsi, rdx
 		mov rdi, rcx
 		mov r9, rcx
+
 		mov rdx, 8
 		mov rax, r8
 		div dl
@@ -429,7 +443,7 @@ _Text SEGMENT
 		pop rdi
 		pop rbx
 		ret
-?KeyDecrypt@@YAXQEAEPEAEG@Z ENDP
+?KeyDecrypt@@YQXQEAEPEAEG@Z ENDP
 _Text ENDS
 ;----------------------------------------------------------------------------
 _Text SEGMENT
@@ -437,7 +451,7 @@ _Text SEGMENT
 ; cx usPositions_Daten
 ; dh ucPosition_Schlussel
 ; dl ucRest
-?KeyEncrypt@@YAXQEAEPEAEG@Z PROC
+?KeyEncrypt@@YQXQEAEPEAEG@Z PROC
 		push rbx
 		push rdi
 		push rsi
@@ -611,7 +625,7 @@ _Text SEGMENT
 		pop rdi
 		pop rbx
 		ret
-?KeyEncrypt@@YAXQEAEPEAEG@Z ENDP
+?KeyEncrypt@@YQXQEAEPEAEG@Z ENDP
 _Text ENDS
 ;----------------------------------------------------------------------------
 CS_Crypt ENDS

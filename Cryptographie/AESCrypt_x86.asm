@@ -6,16 +6,16 @@
 ;/****************************************************************************
 ;  The MIT License(MIT)
 ;
-;  Copyright(c) 2021 René Pagel
+;  Copyright(c) 2024 René Pagel
 ;
 ;  Permission is hereby granted, free of charge, to any person obtaining a copy
-;  of this softwareand associated documentation files(the "Software"), to deal
+;  of this software and associated documentation files(the "Software"), to deal
 ;  in the Software without restriction, including without limitation the rights
 ;  to use, copy, modify, merge, publish, distribute, sublicense, and /or sell
 ;  copies of the Software, and to permit persons to whom the Software is
 ;  furnished to do so, subject to the following conditions :
 ;
-;  The above copyright noticeand this permission notice shall be included in all
+;  The above copyright notice and this permission notice shall be included in all
 ;  copies or substantial portions of the Software.
 ;
 ;  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -57,6 +57,8 @@ add_Bytes = 16 + s_Bytes
 
 		mov dword ptr sdp_Speicher[esp], ecx
 
+		pxor xmm2, xmm2
+
 		mov	esi, edx
 		test esi, esi
 		je Ende
@@ -83,6 +85,7 @@ add_Bytes = 16 + s_Bytes
 		mov ecx, dword ptr sdp_Speicher[esp]
 		call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
 		mov edi, eax
+		movd xmm2, eax
 
 		mov edx, dword ptr add_Bytes[esp]
 		mov edx, dword ptr [edx]
@@ -109,13 +112,13 @@ add_Bytes = 16 + s_Bytes
 		push esi
 		push edi
 		
-		mov esi, sdp_PlainText[esp]
+		mov esi, sdp_PlainText[esp + 8]
 
 		pxor xmm1, xmm1
-		movdqu xmmword ptr sxp_Kleiner_16[esp], xmm1
-		lea edi, sxp_Kleiner_16[esp]
+		movdqu xmmword ptr sxp_Kleiner_16[esp + 8], xmm1
+		lea edi, sxp_Kleiner_16[esp + 8]
 		rep movsb
-		vmovdqu xmm1, xmmword ptr sxp_Kleiner_16[esp]
+		vmovdqu xmm1, xmmword ptr sxp_Kleiner_16[esp + 8]
 
 		pop edi
 		pop esi
@@ -156,32 +159,37 @@ add_Bytes = 16 + s_Bytes
 		push edi
 		push ecx
 		
-		mov ecx, dword ptr sdi_Bytes[esp]
+		mov ecx, dword ptr sdi_Bytes[esp + 8]
 		cmp ecx, 10h
-		jbe short Ende
-		add ecx, dword ptr sdp_PlainText[esp]
+		jbe short Ende_ESP
+		add ecx, dword ptr sdp_PlainText[esp + 8]
 		sub ecx, edx
 
 		pxor xmm1, xmm1
-		movdqu xmmword ptr sxp_Kleiner_16[esp], xmm1
-		lea edi, sxp_Kleiner_16[esp]
+		movdqu xmmword ptr sxp_Kleiner_16[esp + 8], xmm1
+		lea edi, sxp_Kleiner_16[esp + 8]
 		rep movsb
-		movdqu xmm1, xmmword ptr sxp_Kleiner_16[esp]
+		movdqu xmm1, xmmword ptr sxp_Kleiner_16[esp + 8]
 
 		pop ecx
 		pop edi
 		
 		mov esi, edx
 		add ebx, 1
-		jmp	Bytes_Crypt_Kleiner_16
+		jmp Bytes_Crypt_Kleiner_16
 
 	Ende_Frei:
 		mov edx, edi
 		mov ecx, dword ptr sdp_Speicher[esp]
 		call ?VMFrei@System@RePag@@YQXPBXPAX@Z ; VMFrei(vmSpeicher, vbAdresse)
-		xor eax, eax
+		pxor xmm2, xmm2
+		jmp short Ende
+
+	Ende_ESP:
+		add esp, 8
 
 	Ende:
+		movd eax, xmm2
 		add esp, s_Bytes
 		pop ebx
 		pop	edi
@@ -191,18 +199,14 @@ add_Bytes = 16 + s_Bytes
 _Text ENDS
 ;-----------------------------------------------------------------------------
 _Text SEGMENT
-s_Bytes = 4
 
-sdp_Speicher = 0
-
-adauc256Key = 24 + s_Bytes
-adauc_16IVec = 20 + s_Bytes
-add_Bytes = 16 + s_Bytes
+adauc256Key = 24
+adauc_16IVec = 20
+add_Bytes = 16
 ?AES_CBC_Decrypt@@YQPADPBX0AAKQAE2@Z PROC PUBLIC
 		push ebx
 		push esi
 		push edi
-		sub esp, s_Bytes
 
 		mov esi, edx
 		test esi, esi
@@ -219,6 +223,7 @@ add_Bytes = 16 + s_Bytes
 		je Ende
 
 	ChipperText:
+		;sub edx, 10h
 		call ?VMBlockS@System@RePag@@YQPADPBXK@Z ; VMBlockS(vmSpeicher, ulBytes)
 		mov edi, eax
 
@@ -267,16 +272,8 @@ add_Bytes = 16 + s_Bytes
 		add edi, 10h
 		cmp	esi, edx
 		jb Bytes_Crypt
-		jmp short Ende
-
-	Ende_Frei:
-		mov edx, edi
-		mov ecx, dword ptr sdp_Speicher[esp]
-		call ?VMFreiS@System@RePag@@YQXPBXPAX@Z ; VMFreiS(vmSpeicher, vbAdresse)
-		xor eax, eax
 
 	Ende:
-		add esp, s_Bytes
 		pop	edi
 		pop	esi
 		pop	ebx
@@ -291,29 +288,28 @@ CS_Crypt SEGMENT PARA PRIVATE FLAT EXECUTE
 ; cx usPositions_Daten
 ; dh ucPosition_Schlussel
 ; dl ucRest
-bit128Key = 8
-pucCrypthText = 12
 usBytes = 16
-?KeyDecrypt@@YGXQAEPAEG@Z PROC
-		push ebp
-		mov	ebp, esp
+?KeyDecrypt@@YQXQAEPAEG@Z PROC
 		push ebx
 		push edi
 		push esi
 
+		mov esi, edx
+		mov edi, ecx
+		movd xmm0, ecx
+
 		mov edx, 8
-		movzx eax, word ptr usBytes[ebp]
+		movzx eax, word ptr usBytes[esp]
+		movd xmm1, eax
 		div dl
 		mov dl, ah
-		movzx eax, word ptr usBytes[ebp]
+		movd eax, xmm1
 		mov dh, 0
 		xor ecx, ecx
-		mov edi, dword ptr bit128Key[ebp]
-		mov esi, dword ptr pucCrypthText[ebp]
-		jmp CoreDecrypt_Schleife_Vergleich
+		jmp short CoreDecrypt_Schleife_Vergleich
 
 	CoreDecrypt_Schleife_Anfang:
-		mov edi, dword ptr bit128Key[ebp] 
+		movd edi, xmm0
 		add edi, 8
 
 	CoreDecrypt_Schleife_Vergleich:
@@ -321,7 +317,7 @@ usBytes = 16
 		jge CoreDecrypt_Schleife_Ende
 
 		cmp dh, 16
-		jne CoreDecrypt_Schlussel
+		jne short CoreDecrypt_Schlussel
 		xor dh, dh
 		sub edi, 8
 
@@ -366,7 +362,7 @@ usBytes = 16
 		mov bx, cx
 		add bx, 8
 		cmp ax, bx
-		jl CoreDecrypt_Rest
+		jl short CoreDecrypt_Rest
 
 		mov edi, esi
 		add esi, 8
@@ -407,12 +403,12 @@ usBytes = 16
 
 	CoreDecrypt_Rest:
 		cmp dl, 0
-		je CoreDecrypt_Schleife_Ende
+		je short CoreDecrypt_Schleife_Ende
 
 		mov eax, 1
 		add esi, 7
 		mov edi, esi
-		jmp CoreDecrypt_Schleife_Rest_Vergleich
+		jmp short CoreDecrypt_Schleife_Rest_Vergleich
 
 	CoreDecrypt_Schleife_Rest_Anfang:
 		add al, 1
@@ -420,24 +416,24 @@ usBytes = 16
 
 	CoreDecrypt_Schleife_Rest_Vergleich:
 		cmp al, dl
-		jg CoreDecrypt_Rest_Schlussel
+		jg short CoreDecrypt_Rest_Schlussel
 
 		mov bh, byte ptr [esi + eax]
 		xor bh, byte ptr [edi]
 		mov byte ptr [esi + eax], bh
-		jmp CoreDecrypt_Schleife_Rest_Anfang
+		jmp short CoreDecrypt_Schleife_Rest_Anfang
 
 	CoreDecrypt_Rest_Schlussel:
 		cmp dh, 16
-		jne CoreDecrypt_B
+		jne short CoreDecrypt_B
 		xor dh, dh
 
 	CoreDecrypt_B:
-		mov edi, dword ptr bit128Key[ebp]
+		movd edi, xmm0
 		bt dx, 11
-		jnc CoreDecrypt_RestAdd_Vergleich
+		jnc short CoreDecrypt_RestAdd_Vergleich
 		add edi, 8 
-		jmp CoreDecrypt_RestAdd_Vergleich
+		jmp short CoreDecrypt_RestAdd_Vergleich
 
 	CoreDecrypt_RestAdd_Anfang:
 		add edi, 1
@@ -445,50 +441,48 @@ usBytes = 16
 
 	CoreDecrypt_RestAdd_Vergleich:
 		cmp dl, 0
-		je CoreDecrypt_Schleife_Ende
+		je short CoreDecrypt_Schleife_Ende
 
 		add esi, 1
 		mov bh, byte ptr [esi] 
 		add bh, byte ptr [edi]
 		mov byte ptr [esi], bh
-		jmp CoreDecrypt_RestAdd_Anfang
+		jmp short CoreDecrypt_RestAdd_Anfang
 
 	CoreDecrypt_Schleife_Ende:
 		pop esi
 		pop edi
 		pop ebx
-		mov esp, ebp
-		pop ebp
-		ret 12
-?KeyDecrypt@@YGXQAEPAEG@Z ENDP
+		ret 4
+?KeyDecrypt@@YQXQAEPAEG@Z ENDP
 ;----------------------------------------------------------------------------
 ; ax usBytes
 ; cx usPositions_Daten
 ; dh ucPosition_Schlussel
 ; dl ucRest
-?KeyEncrypt@@YGXQAEPAEG@Z PROC
-		push ebp
-		mov	ebp, esp
+?KeyEncrypt@@YQXQAEPAEG@Z PROC
 		push ebx
 		push edi
 		push esi
 
-		mov esi, dword ptr pucCrypthText[ebp]
-		mov edi, dword ptr bit128Key[ebp]
+		mov esi, edx
+		mov edi, ecx
+		movd xmm0, ecx
 
 		mov edx, 8
-		movzx eax, word ptr usBytes[ebp]
+		movzx eax, word ptr usBytes[esp]
+		movd xmm1, eax
 		div dl
 		mov dl, ah
 
-		movzx eax, word ptr usBytes[ebp]
+		movd eax, xmm1
 		mov ecx, eax
 		shr ax, 4
 		shl ax, 4
 		sub cx, ax
 		mov dh, cl
 
-		movzx eax, word ptr usBytes[ebp]
+		movd eax, xmm1
 		mov ecx, eax
 		sub ecx, 1
 		movzx ebx, dh
@@ -496,7 +490,7 @@ usBytes = 16
 		mov ebx, eax
 		sub bl, dl
 		shl eax, 16
-		jmp CoreEncrypt_Schleife_RestSub_Vergleich
+		jmp short CoreEncrypt_Schleife_RestSub_Vergleich
 
 	CoreEncrypt_Schleife_RestSub_Anfang:
 		sub ecx, 1
@@ -504,13 +498,13 @@ usBytes = 16
 
 	CoreEncrypt_Schleife_RestSub_Vergleich:
 		cmp cx, bx
-		jl CoreEncrypt_Schleife_RestSub_Ende
+		jl short CoreEncrypt_Schleife_RestSub_Ende
 
 		sub edi, 1
 		mov al, byte ptr [esi + ecx]
 		sub al, byte ptr [edi]
 		mov byte ptr [esi + ecx], al
-		jmp CoreEncrypt_Schleife_RestSub_Anfang
+		jmp short CoreEncrypt_Schleife_RestSub_Anfang
 
 	CoreEncrypt_Schleife_RestSub_Ende:
 		shr eax, 16
@@ -520,7 +514,7 @@ usBytes = 16
 		add edi, ebx
 		sub edi, 1
 		shl edx, 16
-		jmp CoreEncrypt_Schleife_Rest_Vergleich
+		jmp short CoreEncrypt_Schleife_Rest_Vergleich
 
 	CoreEncrypt_Schleife_Rest_Anfang:
 		add ebx, 1
@@ -528,16 +522,16 @@ usBytes = 16
 
 	CoreEncrypt_Schleife_Rest_Vergleich:
 		cmp bx, ax
-		jge CoreEncrypt_Schleife_Rest_Ende
+		jge short CoreEncrypt_Schleife_Rest_Ende
 
 		mov dl, byte ptr [esi + ebx]
 		xor dl, byte ptr [edi]
 		mov byte ptr [esi + ebx], dl
-		jmp CoreEncrypt_Schleife_Rest_Anfang
+		jmp short CoreEncrypt_Schleife_Rest_Anfang
 
 	CoreEncrypt_Schleife_Rest_Ende:
 		shr edx, 24
-		mov edi, dword ptr bit128Key[ebp]
+		movd edi, xmm0
 		add edi, edx
 		test dl, dl
 		jne CoreEncrypt_B
@@ -548,15 +542,15 @@ usBytes = 16
 		sub ecx, 1
 		add esi, ecx
 		add ecx, 1
-		jmp CoreEncrypt_A
+		jmp short CoreEncrypt_A
 
 	CoreEncrypt_Schleife_Anfang:
 		sub esi, 1
 		sub dl, 8
-		mov edi, dword ptr bit128Key[ebp]
+		movd edi, xmm0
 		add edi, edx
 		test dl, dl
-		jne CoreEncrypt_A
+		jne short CoreEncrypt_A
 		mov dl, 16
 		add edi, 16
 
@@ -596,7 +590,7 @@ usBytes = 16
 
 		sub cx, 8
 		test cx, cx
-		je CoreEncrypt_Schleife_Ende
+		je short CoreEncrypt_Schleife_Ende
 
 		sub esi, 7
 		mov edi, esi
@@ -639,10 +633,8 @@ usBytes = 16
 		pop esi
 		pop edi
 		pop ebx
-		mov esp, ebp
-		pop ebp
-		ret 12
-?KeyEncrypt@@YGXQAEPAEG@Z ENDP
+		ret 4
+?KeyEncrypt@@YQXQAEPAEG@Z ENDP
 ;----------------------------------------------------------------------------
 CS_Crypt ENDS
 END
