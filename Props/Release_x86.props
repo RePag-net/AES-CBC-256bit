@@ -27,7 +27,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <IntelJCCErratum>true</IntelJCCErratum>
-      <Optimization>Custom</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -38,7 +38,7 @@
       <StringPooling>true</StringPooling>
       <EnableModules>false</EnableModules>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MinimalRebuild />
       <CreateHotpatchableImage>
       </CreateHotpatchableImage>
@@ -49,18 +49,19 @@
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <PreventDllBinding>false</PreventDllBinding>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <LinkStatus>false</LinkStatus>
     </Link>
     <BuildLog>
       <Path>$(IntDir)$(MSBuildProjectName)_Rx86.log</Path>
     </BuildLog>
     <PostBuildEvent>
-      <Command>signtool sign /i "RePag Root" /t http://timestamp.digicert.com $(OutDir)$(TargetName)$(TargetExt)</Command>
+      <Command>signtool sign /fd SHA256 /i "RePag Root" /t http://timestamp.digicert.com $(OutDir)$(TargetName)$(TargetExt)</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message> /t http://timestamp.digicert.com</Message>

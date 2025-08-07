@@ -13,11 +13,11 @@
     <ExecutablePath>C:\Program Files\NASM 2.14.02;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <SpectreMitigation>false</SpectreMitigation>
+    <SpectreMitigation>Spectre</SpectreMitigation>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level2</WarningLevel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -31,8 +31,8 @@
       <StringPooling>true</StringPooling>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>..\..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WINDLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ControlFlowGuard>false</ControlFlowGuard>
+      <PreprocessorDefinitions>DNSLOCAL;AESCRYPT;_WINDLL;WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <SDLCheck>true</SDLCheck>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -41,22 +41,25 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <Optimization>Custom</Optimization>
       <EnableModules>false</EnableModules>
-      <IntelJCCErratum>false</IntelJCCErratum>
+      <IntelJCCErratum>true</IntelJCCErratum>
       <SupportJustMyCode>false</SupportJustMyCode>
       <CreateHotpatchableImage>
       </CreateHotpatchableImage>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
       <PreventDllBinding>false</PreventDllBinding>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <MapFileName>$(IntDir)$(TargetName).map</MapFileName>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <LinkStatus>false</LinkStatus>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
       <Culture>0x0407</Culture>

@@ -6,7 +6,7 @@
 ;/****************************************************************************
 ;  The MIT License(MIT)
 ;
-;  Copyright(c) 2024 René Pagel
+;  Copyright(c) 2025 René Pagel
 ;
 ;  Permission is hereby granted, free of charge, to any person obtaining a copy
 ;  of this software and associated documentation files(the "Software"), to deal
@@ -45,9 +45,9 @@ sqp_Vector = 56 + s_Bytes + s_push
 sqp_Bytes = 48 + s_Bytes + s_push
 sqp_PlainText = 40 + s_Bytes + s_push
 
-sxp_Kleiner_16 = 12 + s_ShadowRegister + s_push
-sqp_Speicher = 4 + s_ShadowRegister + s_push
-sdi_Bytes = 0 + s_ShadowRegister + s_push
+sxp_Kleiner_16 = 12 + s_ShadowRegister
+sqp_Speicher = 4 + s_ShadowRegister
+sdi_Bytes = 0 + s_ShadowRegister
 ?AES_CBC_Encrypt@@YQPEADPEBX0AEAKQEAE2@Z PROC PUBLIC
 		push rsi
 		push rdi
